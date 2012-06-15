@@ -258,6 +258,15 @@ public:
             DBG (types[i]);
         }
         
+        // set the input stream to the output stream's start
+        FileOutputStream* fileCheck = dynamic_cast<FileOutputStream*> (out);
+        if (fileCheck != nullptr)
+            input = new FileInputStream (fileCheck->getFile());
+
+        MemoryOutputStream* memoryCheck = dynamic_cast<MemoryOutputStream*> (out);
+        if (memoryCheck != nullptr)
+            input = new MemoryInputStream (memoryCheck->getData(), memoryCheck->getDataSize(), false);
+        
         // destination format
         AudioStreamBasicDescription destinationAudioFormat;
         destinationAudioFormat.mSampleRate       = sampleRate;
@@ -371,16 +380,20 @@ private:
     ExtAudioFileRef audioFileRef;
     HeapBlock<AudioBufferList> bufferList;
     uint64 bytesWritten;
-    int64 expectedSize;
-    MemoryBlock tempBlock;
+    ScopedPointer<InputStream> input;
+    //int64 expectedSize;
+    //MemoryBlock tempBlock;
     
     //==============================================================================
     static SInt64 getSizeCallback (void* inClientData)
     {
-        DBG ("getSizeCallback");
         CoreAudioWriter* const writer = static_cast<CoreAudioWriter*> (inClientData);
+        const SInt64 size = writer->bytesWritten;//writer->input->getTotalLength();
+        DBG ("getSizeCallback " << (int) size);
+        return size;
 
-        return writer->tempBlock.getSize();//expectedSize;//bytesWritten;
+//
+//        return writer->tempBlock.getSize();//expectedSize;//bytesWritten;
     }
     
     static OSStatus readCallback (void* inClientData,
@@ -389,10 +402,17 @@ private:
                                   void* buffer,
                                   UInt32* actualCount)
     {
-        DBG ("readCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount);
+//        DBG ("readCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount);
+//        CoreAudioWriter* const writer = static_cast<CoreAudioWriter*> (inClientData);
+//        memcpy (addBytesToPointer (writer->tempBlock.getData(), inPosition), buffer, requestCount);
+//        *actualCount = requestCount;
         CoreAudioWriter* const writer = static_cast<CoreAudioWriter*> (inClientData);
-        memcpy (addBytesToPointer (writer->tempBlock.getData(), inPosition), buffer, requestCount);
-        *actualCount = requestCount;
+        
+        const bool seekSucceeded = writer->input->setPosition (inPosition);
+        *actualCount = (UInt32) writer->input->read (buffer, (int) requestCount);
+
+        DBG ("readCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount << " seek: " << seekSucceeded);
+        DBG (*((char*) buffer));
 
         return noErr;
     }
@@ -405,17 +425,19 @@ private:
     {
         CoreAudioWriter* const writer = static_cast<CoreAudioWriter*> (inClientData);
         
-        const bool success = writer->output->write (addBytesToPointer (buffer, inPosition), requestCount);
-        
+        //const bool success = writer->output->write (addBytesToPointer (buffer, inPosition), requestCount);
+        writer->output->setPosition (inPosition);
+        const bool success = writer->output->write (buffer, requestCount);
+
         if (success)
         {
-            writer->tempBlock.ensureSize (writer->tempBlock.getSize() + requestCount + inPosition);
-            memcpy (addBytesToPointer (writer->tempBlock.getData(), inPosition), buffer, requestCount);
+//            writer->tempBlock.ensureSize (writer->tempBlock.getSize() + requestCount + inPosition);
+//            memcpy (addBytesToPointer (writer->tempBlock.getData(), inPosition), buffer, requestCount);
 
             writer->bytesWritten += requestCount;
             DBG ("writeCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount << " total: " << (int) writer->bytesWritten);
             *actualCount = requestCount;
-            
+            DBG (*((char*) buffer));
             return noErr;
         }
         else
@@ -431,10 +453,10 @@ private:
     {
         DBG ("setSizeCallback: " << (int) inSize);
         CoreAudioWriter* const writer = static_cast<CoreAudioWriter*> (inClientData);
-        
-        // set stream size?
-        writer->expectedSize = inSize;
-        writer->tempBlock.ensureSize (inSize);
+
+        const int64 numBytesToPad = inSize - writer->bytesWritten;
+        writer->bytesWritten += numBytesToPad;
+        writer->output->writeRepeatedByte (0, numBytesToPad);
         
         return noErr;
     }
