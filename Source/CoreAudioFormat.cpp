@@ -65,6 +65,17 @@ namespace
         
         return extensionsArray;
     }
+    
+    void printChars (char* charPointer, int numChars)
+    {
+#ifdef JUCE_DEBUG
+        while (--numChars >= 0)
+        {
+            printf ("%c", *charPointer++);
+        }
+        printf ("\n");
+#endif
+    }
 }
 
 //==============================================================================
@@ -259,13 +270,14 @@ public:
         }
         
         // set the input stream to the output stream's start
-        FileOutputStream* fileCheck = dynamic_cast<FileOutputStream*> (out);
-        if (fileCheck != nullptr)
-            input = new FileInputStream (fileCheck->getFile());
-
-        MemoryOutputStream* memoryCheck = dynamic_cast<MemoryOutputStream*> (out);
-        if (memoryCheck != nullptr)
-            input = new MemoryInputStream (memoryCheck->getData(), memoryCheck->getDataSize(), false);
+        updateInputStream();
+//        FileOutputStream* fileCheck = dynamic_cast<FileOutputStream*> (out);
+//        if (fileCheck != nullptr)
+//            input = new FileInputStream (fileCheck->getFile());
+//
+//        MemoryOutputStream* memoryCheck = dynamic_cast<MemoryOutputStream*> (out);
+//        if (memoryCheck != nullptr)
+//            input = new MemoryInputStream (memoryCheck->getData(), memoryCheck->getDataSize(), false);
         
         // destination format
         AudioStreamBasicDescription destinationAudioFormat;
@@ -342,7 +354,6 @@ public:
     //==============================================================================
     bool write (const int** data, int numSamples)
     {
-        DBG ("write");
         jassert (data != nullptr && *data != nullptr); // the input must contain at least one channel!
 
         if (writeFailed)
@@ -366,8 +377,13 @@ public:
         
         if (status == noErr)
             return true;
-        
+        kExtAudioFileError_InvalidOperationOrder
+        DBG (status);
         writeFailed = true;
+        String statusCode;
+        char* id = (char*) &status;
+        statusCode << id[3] << id[2] << id[1] << id[0];
+        DBG (statusCode);
 
         return false;
     }
@@ -411,8 +427,9 @@ private:
         const bool seekSucceeded = writer->input->setPosition (inPosition);
         *actualCount = (UInt32) writer->input->read (buffer, (int) requestCount);
 
-        DBG ("readCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount << " seek: " << seekSucceeded);
-        DBG (*((char*) buffer));
+        DBG ("readCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount << " actual: " << (int) *actualCount << " seek: " << seekSucceeded);
+        DBG ("read length" << (int) writer->input->getTotalLength());
+        printChars ((char*) buffer, requestCount);
 
         return noErr;
     }
@@ -437,7 +454,10 @@ private:
             writer->bytesWritten += requestCount;
             DBG ("writeCallback - pos: " << (int) inPosition << " bytes: " << (int) requestCount << " total: " << (int) writer->bytesWritten);
             *actualCount = requestCount;
-            DBG (*((char*) buffer));
+            writer->updateInputStream();
+
+            printChars ((char*) buffer, requestCount);
+
             return noErr;
         }
         else
@@ -457,10 +477,30 @@ private:
         const int64 numBytesToPad = inSize - writer->bytesWritten;
         writer->bytesWritten += numBytesToPad;
         writer->output->writeRepeatedByte (0, numBytesToPad);
-        
+        writer->updateInputStream();
+
         return noErr;
     }
-
+    
+    void updateInputStream()
+    {
+        output->flush();
+        
+        FileOutputStream* fileCheck = dynamic_cast<FileOutputStream*> (output);
+        if (fileCheck != nullptr)
+        {
+            FileInputStream* newStream = new FileInputStream (fileCheck->getFile());
+            input = newStream;
+            DBG ("input stream opened: " << newStream->openedOk() << " - " << newStream->getStatus().getErrorMessage());
+        }
+        
+        MemoryOutputStream* memoryCheck = dynamic_cast<MemoryOutputStream*> (output);
+        if (memoryCheck != nullptr)
+            input = new MemoryInputStream (memoryCheck->getData(), memoryCheck->getDataSize(), false);
+        
+        DBG ("input stream size: " << (int) input->getTotalLength());
+    }
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CoreAudioWriter);
 };
 
