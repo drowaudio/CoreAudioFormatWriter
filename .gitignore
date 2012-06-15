@@ -11,3 +11,4 @@ Release/
 xcuserdata
 *.psd
 .svn/
+.DS_Store

@@ -280,6 +280,10 @@ public:
                                                             0,
                                                             &audioFileID);
         
+        String statusCode;
+        char* id = (char*) &status;
+        statusCode << id[3] << id[2] << id[1] << id[0];
+        DBG (statusCode);
 //        OSStatus status = AudioFileOpenWithCallbacks (this,
 //                                                      &readCallback,
 //                                                      &writeCallback,
