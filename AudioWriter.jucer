@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="JePBv8" name="AudioWriter" projectType="guiapp" version="1.0.0"
+              jucerVersion="3.0.0">
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX" juceFolder="../../Documents/Developement/juce_source/juce/modules">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="AudioWriter"
+                       osxSDK="default" osxCompatibility="default" osxArchitecture="default"
+                       cppLibType="libc++"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="2" targetName="AudioWriter"
+                       osxSDK="default" osxCompatibility="default" osxArchitecture="default"
+                       cppLibType="libc++"/>
+      </CONFIGURATIONS>
+    </XCODE_MAC>
+    <VS2010 targetFolder="Builds/VisualStudio2010" libraryType="1" juceFolder="../../Documents/Developement/juce_source/juce/modules">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="1" optimisation="1" targetName="AudioWriter"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
+                       isDebug="0" optimisation="2" targetName="AudioWriter"/>
+      </CONFIGURATIONS>
+    </VS2010>
+    <LINUX_MAKE targetFolder="Builds/Linux" juceFolder="../../Documents/Developement/juce_source/juce/modules">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" libraryPath="/usr/X11R6/lib/" isDebug="1" optimisation="1"
+                       targetName="AudioWriter"/>
+        <CONFIGURATION name="Release" libraryPath="/usr/X11R6/lib/" isDebug="0" optimisation="2"
+                       targetName="AudioWriter"/>
+      </CONFIGURATIONS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MAINGROUP id="DCZpR9" name="AudioWriter">
+    <GROUP id="{1BEC5084-3F70-33B5-3C2A-8C6E1EFB95E2}" name="Source">
+      <FILE id="pFdfXU" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="K7g3B0" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
+      <FILE id="G9psHP" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
+      <FILE id="hdQ1KM" name="CoreAudioFormat.h" compile="0" resource="0"
+            file="Source/CoreAudioFormat.h"/>
+      <FILE id="JJ5FeX" name="CoreAudioFormat.cpp" compile="1" resource="0"
+            file="Source/CoreAudioFormat.cpp"/>
+      <GROUP id="{3F90D928-CF20-B279-6326-9E19A5797257}" name="AudioDemo">
+        <FILE id="U4hmOT" name="AudioDemoTabComponent.h" compile="0" resource="0"
+              file="Source/AudioDemo/AudioDemoTabComponent.h"/>
+        <FILE id="awUIJ7" name="AudioDemoTabComponent.cpp" compile="1" resource="0"
+              file="Source/AudioDemo/AudioDemoTabComponent.cpp"/>
+        <FILE id="aroWhi" name="AudioDemoSetupPage.h" compile="0" resource="0"
+              file="Source/AudioDemo/AudioDemoSetupPage.h"/>
+        <FILE id="WYq29C" name="AudioDemoSetupPage.cpp" compile="1" resource="0"
+              file="Source/AudioDemo/AudioDemoSetupPage.cpp"/>
+        <FILE id="TdZzUI" name="AudioDemoRecordPage.h" compile="0" resource="0"
+              file="Source/AudioDemo/AudioDemoRecordPage.h"/>
+        <FILE id="ZM8jb1" name="AudioDemoRecordPage.cpp" compile="1" resource="0"
+              file="Source/AudioDemo/AudioDemoRecordPage.cpp"/>
+      </GROUP>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_audio" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0"/>
+  </MODULES>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>
