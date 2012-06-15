@@ -284,9 +284,9 @@ public:
         destinationAudioFormat.mSampleRate       = sampleRate;
         destinationAudioFormat.mFormatID         = kAudioFormatLinearPCM;
         destinationAudioFormat.mFormatFlags      = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
-        destinationAudioFormat.mBitsPerChannel   = sizeof (int16) * 8;
-        destinationAudioFormat.mChannelsPerFrame = numChannels;
-        destinationAudioFormat.mBytesPerFrame    = sizeof (int16);
+        destinationAudioFormat.mBitsPerChannel   = bits; //sizeof (int16) * 8;
+        destinationAudioFormat.mChannelsPerFrame = 1;//numChannels;
+        destinationAudioFormat.mBytesPerFrame    = bits / 8; //sizeof (int16);
         destinationAudioFormat.mFramesPerPacket  = 1;
         destinationAudioFormat.mBytesPerPacket   = destinationAudioFormat.mFramesPerPacket * destinationAudioFormat.mBytesPerFrame;
         
@@ -300,7 +300,7 @@ public:
                                                             &destinationAudioFormat,
                                                             0,
                                                             &audioFileID);
-        
+
         String statusCode;
         char* id = (char*) &status;
         statusCode << id[3] << id[2] << id[1] << id[0];
@@ -335,6 +335,14 @@ public:
                                                   kExtAudioFileProperty_ClientDataFormat,
                                                   sizeof (AudioStreamBasicDescription),
                                                   &sourceAudioFormat);
+                String statusCode;
+                char* id = (char*) &status;
+                statusCode << id[3] << id[2] << id[1] << id[0];
+                DBG (statusCode);
+                jassert (status == noErr);
+
+                jassert (status == noErr);
+
                 if (status == noErr)
                 {
                     bufferList.malloc (1, sizeof (AudioBufferList) + numChannels * sizeof (AudioBuffer));
@@ -377,7 +385,7 @@ public:
         
         if (status == noErr)
             return true;
-        kExtAudioFileError_InvalidOperationOrder
+        
         DBG (status);
         writeFailed = true;
         String statusCode;
@@ -540,9 +548,9 @@ AudioFormatWriter* CoreAudioFormat::createWriterFor (OutputStream* streamToWrite
                                                      const StringPairArray& metadataValues,
                                                      int qualityOptionIndex)
 {
-    CoreAudioWriter* newWriter = new CoreAudioWriter (streamToWriteTo, sampleRateToUse, (int) numberOfChannels, bitsPerSample, metadataValues);
+    ScopedPointer<CoreAudioWriter> newWriter (new CoreAudioWriter (streamToWriteTo, sampleRateToUse, (int) numberOfChannels, bitsPerSample, metadataValues));
     if (newWriter != nullptr && ! newWriter->writeFailed)
-        return newWriter;
+        return newWriter.release();
     
     return nullptr;
 }
